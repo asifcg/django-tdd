@@ -20,9 +20,9 @@ ARG DEV=false
 #         --no-create-home \
 #         appuser
 
-RUN if [ $DEV = "true" ]; \
-        pip3 install -r /tmp/requirements-dev.txt; \ 
-        then pip3 install -r /tmp/requirements.txt; \
+RUN if [ "$DEV" = "true" ]; \
+        then pip3 install -r /tmp/requirements-dev.txt; \ 
+        else pip3 install -r /tmp/requirements.txt; \
     fi && \
     rm -rf /tmp && \
     adduser \
