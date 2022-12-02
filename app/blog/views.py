@@ -1,3 +1,11 @@
-# from django.shortcuts import render
+from django.http import JsonResponse
 
-# Create your views here.
+
+def posts(request):
+    data = [
+            {
+                "title": "Top 10 datasets"
+            }
+    ]
+
+    return JsonResponse({"posts": data})
