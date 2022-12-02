@@ -1,6 +1,6 @@
-From python:3.9-alpine3.13
+FROM python:3.9-alpine3.13
 
-Label maintainer="thecodegenesis.com"
+LABEL maintainer="thecodegenesis.com"
 
 ENV PYTHONBUFFERED 1
 
