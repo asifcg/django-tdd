@@ -11,7 +11,7 @@ from rest_framework.test import APIClient
 
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
-# ME_URL = reverse('user:me')
+ME_URL = reverse('user:me')
 
 
 def create_user(**params):
@@ -107,3 +107,95 @@ class PublicUserApiTests(TestCase):
 
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_token_for_nonexistent_user(self):
+        """Test returns error if user doesn't exist"""
+        payload = {
+            'email': 'test@example.com',
+            'password': 'goodpass'
+        }
+        res = self.client.post(TOKEN_URL, payload)
+
+        self.assertNotIn('token', res.data)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class PrivateUserApiTests(TestCase):
+    """Test API requests that require authentication."""
+
+    def setUp(self):
+        """Setup for tests."""
+        self.user = create_user(
+            email='test@example.com',
+            password='Testpass123',
+            name='Test User'
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_retrieve_profile_success(self):
+        """Test retrieving profile for logged in user."""
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, {
+            'name': self.user.name,
+            'email': self.user.email
+        })
+
+    def test_post_me_not_allowed(self):
+        """Test that POST is not allowed on the me url."""
+        res = self.client.post(ME_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_user_profile(self):
+        """Test updating the user profile for authenticated user."""
+        payload = {
+            'name': 'New Name',
+            'password': 'Newpass123'
+        }
+
+        res = self.client.patch(ME_URL, payload)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.name, payload['name'])
+        self.assertTrue(self.user.check_password(payload['password']))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_update_user_profile_with_invalid_password(self):
+        """Test updating the user profile for authenticated user."""
+        payload = {
+            'name': 'New Name',
+            'password': 'new'
+        }
+
+        res = self.client.patch(ME_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_me_authorized_with_valid_token(self):
+        """Test that authentication is required for users."""
+        user_details = {'email': 'test@example.com', 'password': 'Testpass123'}
+        user = self.user
+
+        res = self.client.post(TOKEN_URL, user_details)
+        token = res.data['token']
+
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, {
+            'name': user.name,
+            'email': user.email
+        })
+
+    def test_me_unauthorized_with_invalid_token(self):
+        """Test that authentication is required for users."""
+
+        self.client.logout()
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + 'invalidtoken')
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
