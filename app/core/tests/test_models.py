@@ -5,6 +5,8 @@ Tests for models.
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
+from core import models
+
 
 class ModelTests(TestCase):
     """Test for models."""
@@ -49,3 +51,23 @@ class ModelTests(TestCase):
 
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
+
+    def test_create_recipe(self):
+        """Test creating a recipe."""
+
+        user = get_user_model().objects.create_user(
+            'test@example.com',
+            'Testpass123',
+        )
+
+        payload = {
+            'title': 'Chocolate cheesecake',
+            'time_minutes': 30,
+            'price': 5.00,
+            'user': user,
+        }
+        recipe = models.Recipe.objects.create(**payload)
+
+        self.assertEqual(recipe.title, payload['title'])
+        self.assertEqual(recipe.time_minutes, payload['time_minutes'])
+        self.assertEqual(recipe.price, payload['price'])

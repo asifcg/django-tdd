@@ -19,7 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('posts/', include('blog.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path(
         'api/docs/',
@@ -27,4 +26,5 @@ urlpatterns = [
         name='api-docs'
     ),
     path('api/user/', include('user.urls')),
+    path('api/recipe/', include('recipe.urls'))
 ]
