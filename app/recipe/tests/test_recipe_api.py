@@ -8,7 +8,10 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Recipe
+from core.models import (
+    Recipe,
+    Tag
+)
 from decimal import Decimal
 from recipe.serializers import RecipeSerializer
 
@@ -168,8 +171,6 @@ class PrivateRecipeApiTest(TestCase):
         for key in payload.keys():
             self.assertEqual(payload[key], getattr(recipe, key))
 
-        print(recipe.price)
-        print(original_price)
         self.assertEqual(recipe.price, original_price)
 
     def test_full_update_recipe(self):
@@ -191,3 +192,35 @@ class PrivateRecipeApiTest(TestCase):
             self.assertEqual(payload[key], getattr(recipe, key))
 
         self.assertNotEqual(recipe.price, original_price)
+
+    def test_create_recipe_with_tags(self):
+        """Test create Recipe with tags"""
+
+        toast_tag = Tag.objects.create(name='toast')
+
+        payload = {
+            'title': 'Test Recipe',
+            'time_minutes': 30,
+            'price': Decimal(5.5),
+            'tags': [
+                {'name':'breakfast'},
+                {'name': 'toast'}
+            ]
+        }
+
+        res = self.client.post(RECIPES_URL, payload)
+        res_tags = res.data['tags']
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(res.data), 1)
+
+        self.assertIsNotNone(res_tags)
+
+        new_tag = Tag.objects.filter(user=self.user, name=payload['tags'][0])
+        self.assertTrue(new_tag.exists())
+
+        resipe = Recipe.objects.filter(user=self.user).first()
+        resipe_tags = resipe.tags.all()
+
+        self.assertEqual(len(resipe_tags), 2)
+        self.assertTrue(toast_tag in resipe_tags)
