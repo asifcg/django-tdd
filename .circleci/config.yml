@@ -23,9 +23,8 @@ jobs:
           command: "echo Hello, World!"
   
   docker-build:
-    docker:
-      # replace with your preferred image
-      - image: ubuntu-2204:2022.04.2
+    machine:
+      image: ubuntu-2204:2022.04.2
     steps:
       - run:
           name: "Docker Up"
