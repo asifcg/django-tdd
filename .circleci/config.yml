@@ -22,14 +22,14 @@ jobs:
           name: "Say hello"
           command: "echo Hello, World!"
   
-  docker-build:
+  test:
     machine:
       image: ubuntu-2204:2022.04.2
     steps:
       - checkout
       - run:
-          name: "Docker Up"
-          command: "docker-compose up"
+          name: "Run Docker Test"
+          command: "docker-compose run --rm backend python manage.py test"
       
 
 
@@ -39,4 +39,4 @@ workflows:
   say-hello-workflow:
     jobs:
       - say-hello
-      - docker-build
+      - test
