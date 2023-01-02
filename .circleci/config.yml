@@ -25,11 +25,12 @@ jobs:
   docker-build:
     docker:
       # replace with your preferred image
-      - image: cimg/base:stable
+      - image: ubuntu-2204:2022.04.2
     steps:
-      - docker-compose/up:
-          build: true 
-          detach: false 
+      - run:
+          name: "Docker Up"
+          command: "docker-compose up"
+      
 
 
 # Invoke jobs via workflows
