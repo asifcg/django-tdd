@@ -30,7 +30,7 @@ jobs:
       - run:
           name: "Run Docker Test"
           command: |
-            docker-compose run db
+            docker-compose up
             docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py test"
       
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
